@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Plus, Hash, Trophy, ArrowRight, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 // --- API Helpers ---
 const API_URL = "http://localhost:4000/api"; // Direct to backend
@@ -62,7 +61,6 @@ export default function SquadsPage() {
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     const [showJoin, setShowJoin] = useState(false);
-    const router = useRouter();
 
     const loadData = async () => {
         try {

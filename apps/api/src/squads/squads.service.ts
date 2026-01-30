@@ -7,7 +7,6 @@ export class SquadsService {
     constructor(private prisma: PrismaService) { }
 
     async create(userId: string, data: { name: string; description?: string; isPrivate?: boolean }) {
-        // 1. Create the squad
         const squad = await (this.prisma as any).squad.create({
             data: {
                 name: data.name,
