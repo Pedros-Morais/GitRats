@@ -26,7 +26,7 @@ export class SquadsService {
     }
 
     async findAllPublic() {
-        return this.prisma.squad.findMany({
+        return (this.prisma as any).squad.findMany({
             where: { isPrivate: false },
             include: {
                 _count: {
@@ -40,7 +40,7 @@ export class SquadsService {
     }
 
     async findMySquads(userId: string) {
-        return this.prisma.squad.findMany({
+        return (this.prisma as any).squad.findMany({
             where: {
                 members: {
                     some: { userId },
