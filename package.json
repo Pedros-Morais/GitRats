@@ -1,0 +1,29 @@
+{
+  "name": "gitrats",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo clean && rm -rf node_modules",
+    "api": "turbo dev --filter=api",
+    "web": "turbo dev --filter=web",
+    "api:build": "turbo build --filter=api",
+    "web:build": "turbo build --filter=web"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "yarn@1.22.22"
+}

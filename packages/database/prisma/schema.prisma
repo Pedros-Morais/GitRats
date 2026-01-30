@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  githubId  String   @unique
+  username  String   @unique
+  name      String?
+  avatar    String?
+  bio       String?
+  
+  // Game Stats
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  streak    Int      @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  activities Activity[]
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  type      String   // PushEvent, PullRequestEvent, etc.
+  repo      String
+  count     Int      @default(1)
+  xpEarned  Int      @default(0)
+  
+  createdAt DateTime @default(now())
+  date      DateTime // normalized date for streaks
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}

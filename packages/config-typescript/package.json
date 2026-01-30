@@ -1,0 +1,20 @@
+{
+  "name": "@gitrats/config-typescript",
+  "version": "0.0.1",
+  "private": true,
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "nestjs.json",
+    "react-library.json"
+  ],
+  "exports": {
+    "./base.json": "./base.json",
+    "./nestjs.json": "./nestjs.json",
+    "./nextjs.json": "./nextjs.json",
+    "./react-library.json": "./react-library.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
