@@ -1,5 +1,11 @@
 {
     "extends": "@gitrats/config-typescript/base.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
+    },
     "include": [
         "src"
     ],

@@ -27,6 +27,7 @@ model User {
   updatedAt DateTime @updatedAt
   
   activities Activity[]
+  squads     SquadMember[]
 }
 
 model Activity {
@@ -41,4 +42,32 @@ model Activity {
   
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Squad {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  inviteCode  String   @unique @default(uuid()) // Simple invite mechanism
+  isPrivate   Boolean  @default(false)
+  avatar      String?  // Squad logo
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     SquadMember[]
+}
+
+model SquadMember {
+  id        String   @id @default(uuid())
+  role      String   @default("MEMBER") // ADMIN, MEMBER
+  joinedAt  DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  squadId   String
+  squad     Squad    @relation(fields: [squadId], references: [id])
+
+  @@unique([userId, squadId]) // User can only join a squad once
 }

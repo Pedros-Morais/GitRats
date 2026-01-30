@@ -13,7 +13,6 @@ export class AuthController {
     @Get("github")
     @UseGuards(AuthGuard("github"))
     async githubAuth() {
-        // Initiates the GitHub OAuth flow
     }
 
     @Get("github/callback")
@@ -21,7 +20,13 @@ export class AuthController {
     async githubAuthCallback(@Req() req: any, @Res() res: any) {
         const { access_token } = await this.authService.login(req.user);
 
-        // Redirect to frontend with token
+        const frontendUrl = this.configService.get<string>("FRONTEND_URL") || "http://localhost:3000";
+        res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
+    }
+
+    @Get("mock")
+    async mockAuth(@Res() res: any) {
+        const { access_token } = await this.authService.mockLogin();
         const frontendUrl = this.configService.get<string>("FRONTEND_URL") || "http://localhost:3000";
         res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
     }

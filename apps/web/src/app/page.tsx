@@ -91,9 +91,13 @@ export default function Home() {
                 Start Your Workout
               </span>
             </a>
-            <button className="px-8 py-4 bg-transparent border border-hacker-border text-gray-300 font-semibold rounded-lg hover:border-white/50 hover:text-white transition-all">
-              View Leaderboard
-            </button>
+            <a
+              href="http://localhost:4000/api/auth/mock"
+              className="px-8 py-4 bg-transparent border border-hacker-border text-gray-300 font-semibold rounded-lg hover:border-git-neon hover:text-git-neon hover:bg-git-neon/10 transition-all flex items-center gap-2"
+            >
+              <Terminal className="w-5 h-5" />
+              Mock Login (Dev)
+            </a>
           </motion.div>
         </section>
 
