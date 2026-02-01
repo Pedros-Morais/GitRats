@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, UseGuards, Req } from "@nestjs/common";
+import { Controller, Get, Post, Body, UseGuards, Req, Param } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { SquadsService } from "./squads.service";
 
@@ -28,5 +28,9 @@ export class SquadsController {
     @UseGuards(AuthGuard("jwt"))
     async joinSquad(@Req() req: any, @Body() body: { code: string }) {
         return this.squadsService.joinWithCode(req.user.sub, body.code);
+    }
+    @Get(":id")
+    async getSquad(@Param("id") id: string) {
+        return this.squadsService.findOne(id);
     }
 }

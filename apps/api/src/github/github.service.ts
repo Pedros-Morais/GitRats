@@ -1,10 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "@gitrats/database";
+import { ConfigService } from "@nestjs/config";
 
 
 @Injectable()
 export class GithubService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService
+  ) { }
 
   async fetchAndSyncUserActivity(username: string) {
     try {
@@ -84,8 +88,8 @@ export class GithubService {
         await this.prisma.user.update({
           where: { username },
           data: {
-            xp: { increment: Math.floor(Math.random() * 50) + 10 }, // Simulate "new" XP for demo purposes since we don't track processed IDs yet
-            streak: streak > 0 ? streak : user.streak, // Keep max streak logic or current? Let's use calculated.
+            // xp: { increment: Math.floor(newXp / 10) }, // TODO: Implement robust event deduplication to use real XP
+            streak: streak > 0 ? streak : user.streak,
             updatedAt: new Date()
           }
         });
@@ -113,19 +117,83 @@ export class GithubService {
     }
   }
 
-  async getContributions(username: string, year: number) {
-    // Trigger a sync in background when profile is viewed
-    this.fetchAndSyncUserActivity(username);
+  async getContributions(username: string, year: number = new Date().getFullYear()) {
+    this.fetchAndSyncUserActivity(username).catch(err => console.error("Sync failed", err));
 
-    // TODO: Implement GitHub GraphQL API call
-    // For now, return mock contribution data
-    const days = this.generateMockContributions(year);
+    // Priority 1: User's stored token (if they logged in via GitHub)
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    let token = user?.githubAccessToken;
 
+    // Priority 2: Global token (fallback for testing/public data)
+    if (!token) {
+      token = this.configService.get("GITHUB_TOKEN");
+    }
+
+    if (token) {
+      try {
+        const query = `
+              query($username: String!, $from: DateTime!, $to: DateTime!) {
+                user(login: $username) {
+                  contributionsCollection(from: $from, to: $to) {
+                    contributionCalendar {
+                      totalContributions
+                      weeks {
+                        contributionDays {
+                          color
+                          contributionCount
+                          date
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+        const from = `${year}-01-01T00:00:00Z`;
+        const to = `${year}-12-31T23:59:59Z`;
+
+        const res = await fetch('https://api.github.com/graphql', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query,
+            variables: { username, from, to }
+          })
+        });
+
+        const data = await res.json() as any;
+
+        if (data.errors) {
+          console.error("GitHub GraphQL Errors:", JSON.stringify(data.errors, null, 2));
+        }
+
+        const calendar = data.data?.user?.contributionsCollection?.contributionCalendar;
+
+        if (calendar) {
+          return {
+            username,
+            year,
+            totalContributions: calendar.totalContributions,
+            weeks: calendar.weeks.map((w: any) => w.contributionDays)
+          }
+        }
+        console.warn("GraphQL Data missing:", data);
+      } catch (error) {
+        console.error("GraphQL Error:", error);
+      }
+    }
+
+
+    // Fallback if no token or error: Return empty data, do NOT generate mocks.
     return {
       username,
       year,
-      totalContributions: days.reduce((sum, d) => sum + d.count, 0),
-      weeks: this.groupByWeeks(days),
+      totalContributions: 0,
+      weeks: [],
     };
   }
 
@@ -147,33 +215,31 @@ export class GithubService {
     };
   }
 
-  private generateMockContributions(year: number) {
-    const days: { date: string; count: number }[] = [];
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31);
+  async getDailyQuests(username: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
-      days.push({
-        date: d.toISOString().split("T")[0],
-        count: Math.floor(Math.random() * 15),
-      });
-    }
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    if (!user) return { quests: [] };
 
-    return days;
-  }
-
-  private groupByWeeks(days: { date: string; count: number }[]) {
-    const weeks: { date: string; count: number }[][] = [];
-    let currentWeek: { date: string; count: number }[] = [];
-
-    days.forEach((day, index) => {
-      currentWeek.push(day);
-      if (currentWeek.length === 7 || index === days.length - 1) {
-        weeks.push(currentWeek);
-        currentWeek = [];
+    // Query today's activities for this user
+    const todayActivities = await this.prisma.activity.findMany({
+      where: {
+        userId: user.id,
+        date: { gte: today }
       }
     });
 
-    return weeks;
+    const pushCount = todayActivities.filter(a => a.type === 'PushEvent').length;
+    const prCount = todayActivities.filter(a => a.type === 'PullRequestEvent').length;
+    const xpEarnedToday = todayActivities.reduce((sum, a) => sum + a.xpEarned, 0);
+
+    return {
+      quests: [
+        { title: "Push 1 Commit", progress: pushCount >= 1 ? 100 : 0, complete: pushCount >= 1 },
+        { title: "Open/Merge a PR", progress: prCount >= 1 ? 100 : 0, complete: prCount >= 1 },
+        { title: "Earn 50 XP", progress: Math.min(100, (xpEarnedToday / 50) * 100), complete: xpEarnedToday >= 50 }
+      ]
+    };
   }
 }

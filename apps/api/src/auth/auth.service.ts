@@ -9,7 +9,7 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
-    async validateGithubUser(profile: any) {
+    async validateGithubUser(profile: any, accessToken: string) {
         const { id, username, photos, _json } = profile;
         const avatar = photos?.[0]?.value || _json.avatar_url;
 
@@ -20,6 +20,7 @@ export class AuthService {
                 avatar: avatar,
                 name: profile.displayName || username,
                 bio: _json.bio,
+                githubAccessToken: accessToken,
             },
             create: {
                 githubId: id,
@@ -27,11 +28,14 @@ export class AuthService {
                 avatar: avatar,
                 name: profile.displayName || username,
                 bio: _json.bio,
+                githubAccessToken: accessToken,
             },
         });
 
         return user;
     }
+
+
 
     async login(user: any) {
         const payload = { sub: user.id, username: user.username };

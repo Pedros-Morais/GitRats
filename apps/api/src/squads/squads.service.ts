@@ -11,7 +11,7 @@ export class SquadsService {
             data: {
                 name: data.name,
                 description: data.description,
-                isPrivate: data.isPrivate || false,
+                isPrivate: Boolean(data.isPrivate),
                 members: {
                     create: {
                         userId,
@@ -87,5 +87,41 @@ export class SquadsService {
                 role: "MEMBER",
             },
         });
+    }
+    async findOne(id: string) {
+        const squad = await (this.prisma as any).squad.findUnique({
+            where: { id },
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true,
+                                name: true,
+                                avatar: true,
+                                xp: true,
+                                level: true,
+                                streak: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        user: {
+                            xp: 'desc'
+                        }
+                    }
+                },
+                _count: {
+                    select: { members: true }
+                }
+            }
+        });
+
+        if (!squad) {
+            throw new NotFoundException("Squad not found");
+        }
+
+        return squad;
     }
 }

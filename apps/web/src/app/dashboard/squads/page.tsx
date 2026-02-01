@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Plus, Hash, Trophy, ArrowRight, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 // --- API Helpers ---
 const API_URL = "http://localhost:4000/api"; // Direct to backend
@@ -161,31 +162,36 @@ function SquadCard({ squad, isMember }: any) {
             whileHover={{ y: -4 }}
             className={`p-6 rounded-xl border ${isMember ? 'border-git-neon/30 bg-git-neon/5' : 'border-hacker-border bg-gray-900/50'} hover:border-git-neon/50 transition-all relative overflow-hidden group`}
         >
-            <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-xl font-bold text-white font-mono">
-                    {squad.name.substring(0, 2).toUpperCase()}
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-white group-hover:text-git-neon transition-colors truncate max-w-[150px]">{squad.name}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                        <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {memberCount}
+            <Link href={`/dashboard/squads/${squad.id}`} className="block h-full">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 flex items-center justify-center text-xl font-bold text-white font-mono">
+                        {squad.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white group-hover:text-git-neon transition-colors truncate max-w-[150px] flex items-center gap-2">
+                            {squad.name}
+                            {squad.isPrivate && <span className="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700">PRIVATE</span>}
+                        </h3>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                            <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {memberCount}
+                            </div>
+                            {isMember && <span className="bg-git-neon/20 text-git-neon px-2 py-0.5 rounded-full text-[10px] font-bold">MEMBER</span>}
                         </div>
-                        {isMember && <span className="bg-git-neon/20 text-git-neon px-2 py-0.5 rounded-full text-[10px] font-bold">MEMBER</span>}
                     </div>
                 </div>
-            </div>
 
-            <p className="text-sm text-gray-400 line-clamp-2 mb-4 h-10">
-                {squad.description || "No description provided."}
-            </p>
+                <p className="text-sm text-gray-400 line-clamp-2 mb-4 h-10">
+                    {squad.description || "No description provided."}
+                </p>
 
-            <div className="pt-4 border-t border-gray-800/50 flex justify-between items-center">
-                <div className="text-xs font-mono text-gray-500">
-                    CODE: <span className="text-white select-all cursor-copy">{squad.inviteCode}</span>
+                <div className="pt-4 border-t border-gray-800/50 flex justify-between items-center">
+                    <div className="text-xs font-mono text-gray-500">
+                        <span className="text-git-neon group-hover:underline">VIEW SQUAD -&gt;</span>
+                    </div>
                 </div>
-            </div>
+            </Link>
         </motion.div>
     )
 }
@@ -193,17 +199,19 @@ function SquadCard({ squad, isMember }: any) {
 function CreateSquadModal({ onClose, onSuccess }: any) {
     const [name, setName] = useState("");
     const [desc, setDesc] = useState("");
+    const [isPrivate, setIsPrivate] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await createSquad({ name, description: desc, isPrivate: false });
+            await createSquad({ name, description: desc, isPrivate });
             onSuccess();
             onClose();
-        } catch (error) {
-            alert("Failed to create squad");
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message || "Failed to create squad");
         } finally {
             setLoading(false);
         }
@@ -241,6 +249,19 @@ function CreateSquadModal({ onClose, onSuccess }: any) {
                             className="w-full bg-black/30 border border-gray-700 rounded-lg p-3 text-white focus:border-git-neon outline-none transition-colors h-24 resize-none"
                             placeholder="What is this squad about?"
                         />
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gray-900 rounded-lg border border-gray-800">
+                        <input
+                            type="checkbox"
+                            checked={isPrivate}
+                            onChange={e => setIsPrivate(e.target.checked)}
+                            className="w-5 h-5 accent-git-neon rounded cursor-pointer"
+                        />
+                        <div>
+                            <div className="text-white font-bold text-sm">Private Squad</div>
+                            <div className="text-xs text-gray-500">Only people with invite code can join</div>
+                        </div>
                     </div>
 
                     <button

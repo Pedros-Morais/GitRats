@@ -5,7 +5,7 @@ import { GithubService } from "./github.service";
 @ApiTags("github")
 @Controller("github")
 export class GithubController {
-  constructor(private readonly githubService: GithubService) {}
+  constructor(private readonly githubService: GithubService) { }
 
   @Get("contributions")
   @ApiOperation({ summary: "Get contribution graph data" })
@@ -33,5 +33,13 @@ export class GithubController {
       username,
       limit ? parseInt(limit) : 10
     );
+  }
+  @Get("quests")
+  @ApiOperation({ summary: "Get daily quests status" })
+  @ApiQuery({ name: "username", required: true })
+  getQuests(
+    @Query("username") username: string
+  ) {
+    return this.githubService.getDailyQuests(username);
   }
 }

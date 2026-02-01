@@ -17,6 +17,8 @@ model User {
   name      String?
   avatar    String?
   bio       String?
+  githubAccessToken String? // Stored for GraphQL API calls
+  lastProcessedEventId String? // ID of the last processed GitHub event to prevent duplicates
   
   // Game Stats
   level     Int      @default(1)

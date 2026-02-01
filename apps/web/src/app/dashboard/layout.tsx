@@ -20,7 +20,7 @@ export default function DashboardLayout({
                     </div>
 
                     <nav className="space-y-2">
-                        <NavItem href="/dashboard" icon={<LayoutDashboard />} label="Gym Floor" />
+
                         <NavItem href="/dashboard/squads" icon={<Users />} label="Squads" />
                         <NavItem href="/dashboard/leaderboard" icon={<Trophy />} label="Leaderboard" />
                         <NavItem href="/profile" icon={<User />} label="My Profile" />
