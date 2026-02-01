@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { GithubStrategy } from "./strategies/github.strategy";
+import { JwtStrategy } from "./strategies/jwt.strategy";
 import { PrismaModule } from "@gitrats/database";
 
 @Module({
@@ -21,7 +22,7 @@ import { PrismaModule } from "@gitrats/database";
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, GithubStrategy],
+    providers: [AuthService, GithubStrategy, JwtStrategy],
     exports: [AuthService],
 })
 export class AuthModule { }
